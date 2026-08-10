@@ -180,12 +180,6 @@ This will start both the application and PostgreSQL database in isolated contain
 
 To explore the system's capabilities, use these pre-configured accounts:
 
-| Role | Email | Password | Access Level |
-|------|-------|----------|--------------|
-| Administrator | admin@hospital.com | password | Full system access |
-| Doctor | sarah@hospital.com | password | Patient management and scheduling |
-| Patient | Register at `/register` | Your choice | Personal appointment management |
-
 ---
 
 ## 📸 Visual Tour
@@ -198,27 +192,6 @@ To explore the system's capabilities, use these pre-configured accounts:
 | Booking Appointments | ![Book Appointment](image/book-appointment.png) | Real-time availability checking |
 | Doctor Schedule | ![Doctor Dashboard](image/doctor-dashboard.png) | Calendar view with appointment details |
 | Admin Panel | ![Admin Users](image/admin-users.png) | User management and system configuration |
-
----
-
-## 📞 Connect With Me
-
-**Rajeev Nayan**  
-Full-Stack Java Developer | Spring Boot Expert | Clean Code Enthusiast
-
-📧 Email: imrajeevnayan@gmail.com  
-💼 LinkedIn: https://www.linkedin.com/in/imrajeevnayan  
-🐙 GitHub: github.com/imrajeevnayan
-
----
-
-## 🤝 Need Assistance?
-
-If you encounter any issues or have questions about the project:
-
-1. Check the [GitHub Issues](https://github.com/yourname/hms/issues) page for known problems
-2. Contact me directly at imrajeevnayan@gmail.com
-3. Explore the interactive API documentation at http://localhost:8080/swagger-ui.html (after running the application)
 
 ---
 
