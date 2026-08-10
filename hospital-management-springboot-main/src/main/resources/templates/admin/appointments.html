@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Appointments - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-calendar-check text-2xl text-teal-600"></i>
+                <h1 class="text-2xl font-bold text-indigo-700">HMS Admin Panel</h1>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="/admin/users" class="text-gray-700 hover:text-indigo-600 font-medium">Users</a>
+                <a href="/admin/appointments" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 pb-1">Appointments</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-red-600 hover:text-red-800 font-medium flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- Header Row -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-calendar-alt text-teal-600"></i> All Appointments
+            </h2>
+            <p class="text-gray-500 mt-1 text-sm">View and manage all patient appointments</p>
+        </div>
+        <a href="/admin/dashboard"
+           class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition shadow">
+            <i class="fas fa-arrow-left text-sm"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl shadow-lg p-5 flex items-center gap-4 border-l-4 border-indigo-500">
+            <div class="bg-indigo-100 text-indigo-600 rounded-full p-3">
+                <i class="fas fa-list text-xl"></i>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Total Appointments</p>
+                <p class="text-2xl font-bold text-gray-800" th:text="${#lists.size(appointments)}">0</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg p-5 flex items-center gap-4 border-l-4 border-yellow-500">
+            <div class="bg-yellow-100 text-yellow-600 rounded-full p-3">
+                <i class="fas fa-clock text-xl"></i>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Scheduled</p>
+                <p class="text-2xl font-bold text-gray-800"
+                   th:text="${#lists.size(appointments.?[status == 'SCHEDULED'])}">0</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg p-5 flex items-center gap-4 border-l-4 border-green-500">
+            <div class="bg-green-100 text-green-600 rounded-full p-3">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Completed</p>
+                <p class="text-2xl font-bold text-gray-800"
+                   th:text="${#lists.size(appointments.?[status == 'COMPLETED'])}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Message -->
+    <div th:if="${msg}" class="bg-green-100 border border-green-300 text-green-700 px-5 py-4 rounded-xl mb-6 flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-500 text-lg"></i>
+        <span th:text="${msg}"></span>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+
+        <!-- Table Header Bar -->
+        <div class="bg-gradient-to-r from-teal-600 to-indigo-600 px-6 py-4 flex items-center gap-3">
+            <i class="fas fa-table text-white text-lg"></i>
+            <h3 class="text-white font-bold text-lg">Appointments List</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">#</th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-user-injured mr-1 text-indigo-400"></i> Patient
+                    </th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-user-md mr-1 text-teal-400"></i> Doctor
+                    </th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-calendar mr-1 text-purple-400"></i> Date &amp; Time
+                    </th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-hourglass-half mr-1 text-orange-400"></i> Duration
+                    </th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <i class="fas fa-tag mr-1 text-green-400"></i> Status
+                    </th>
+                    <th class="px-5 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+
+                <!-- Empty State -->
+                <tr th:if="${#lists.isEmpty(appointments)}">
+                    <td colspan="7" class="text-center py-20">
+                        <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4 block"></i>
+                        <p class="text-xl font-semibold text-gray-500">No appointments found</p>
+                        <p class="text-sm text-gray-400 mt-1">Appointments will appear here once patients start booking</p>
+                    </td>
+                </tr>
+
+                <!-- Appointment Rows -->
+                <tr th:each="apt, iterStat : ${appointments}"
+                    class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-4 text-sm text-gray-400 font-medium" th:text="${iterStat.count}">1</td>
+
+                    <!-- Patient -->
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-100 text-indigo-700 rounded-full w-9 h-9 flex items-center justify-center font-bold text-sm"
+                                 th:text="${#strings.substring(apt.patient.name, 0, 1)}">J</div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800" th:text="${apt.patient.name}">John Doe</p>
+                                <p class="text-xs text-gray-500" th:text="${apt.patient.patientId}">PAT-0001</p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Doctor -->
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-teal-100 text-teal-700 rounded-full w-9 h-9 flex items-center justify-center font-bold text-sm"
+                                 th:text="${#strings.substring(apt.doctor.name, 0, 1)}">S</div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800" th:text="'Dr. ' + ${apt.doctor.name}">Dr. Sarah</p>
+                                <p class="text-xs text-gray-500" th:text="${apt.doctor.email}">doctor@hospital.com</p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Date & Time -->
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-semibold text-gray-800"
+                           th:text="${#temporals.format(apt.startTime, 'dd MMM yyyy')}">15 Apr 2025</p>
+                        <p class="text-xs text-gray-500"
+                           th:text="${#temporals.format(apt.startTime, 'hh:mm a')}">10:30 AM</p>
+                    </td>
+
+                    <!-- Duration -->
+                    <td class="px-5 py-4 text-sm text-gray-600">
+                        30 mins
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td class="px-5 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                              th:classappend="${apt.status == 'SCHEDULED'} ? 'bg-yellow-100 text-yellow-800' :
+                                             (${apt.status == 'COMPLETED'} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')"
+                              th:text="${apt.status}">SCHEDULED</span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-2">
+                            <!-- Mark as Completed -->
+                            <form th:action="@{'/admin/appointments/' + ${apt.id} + '/complete'}" method="post" class="inline"
+                                  th:if="${apt.status == 'SCHEDULED'}">
+                                <button type="submit"
+                                        class="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                                        title="Mark as Completed">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                            </form>
+
+                            <!-- Delete -->
+                            <form th:action="@{'/admin/appointments/' + ${apt.id} + '/delete'}" method="post" class="inline">
+                                <button type="submit"
+                                        onclick="return confirm('Are you sure you want to delete this appointment?')"
+                                        class="bg-red-100 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                                        title="Delete Appointment">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+                Showing <span class="font-semibold text-gray-700" th:text="${#lists.size(appointments)}">0</span> appointments
+            </p>
+            <a href="/admin/dashboard" class="text-sm text-indigo-600 hover:underline font-medium">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

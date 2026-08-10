@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet'/>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-indigo-700">My Health Portal</h1>
+            <p class="text-sm text-gray-600" th:text="${patient.name}">Patient</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="/appointment/book" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Book Appointment</a>
+            <form th:action="@{/logout}" method="post" class="inline">
+                <button class="text-gray-700 hover:text-red-600 text-sm font-medium">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Upcoming</h3>
+            <p class="text-3xl font-bold text-indigo-600 mt-2" th:text="${upcomingCount ?: 0}">0</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Completed</h3>
+            <p class="text-3xl font-bold text-green-600 mt-2" th:text="${completedCount ?: 0}">0</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500">Patient ID</h3>
+            <p class="text-xl font-mono font-bold text-gray-800 mt-2" th:text="${patient.patientId}">PAT-0001</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">My Appointments</h2>
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
+        events: '/appointment/events',
+        height: 'auto'
+      }).render();
+    });
+</script>
+</body>
+</html>
