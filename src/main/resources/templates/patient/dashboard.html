@@ -1,59 +1,160 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet'/>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-</head>
-<body class="bg-gray-50 min-h-screen">
-<nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-indigo-700">My Health Portal</h1>
-            <p class="text-sm text-gray-600" th:text="${patient.name}">Patient</p>
-        </div>
-        <div class="flex gap-3">
-            <a href="/appointment/book" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Book Appointment</a>
-            <form th:action="@{/logout}" method="post" class="inline">
-                <button class="text-gray-700 hover:text-red-600 text-sm font-medium">Logout</button>
-            </form>
-        </div>
-    </div>
-</nav>
-
-<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-sm font-medium text-gray-500">Upcoming</h3>
-            <p class="text-3xl font-bold text-indigo-600 mt-2" th:text="${upcomingCount ?: 0}">0</p>
-        </div>
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-sm font-medium text-gray-500">Completed</h3>
-            <p class="text-3xl font-bold text-green-600 mt-2" th:text="${completedCount ?: 0}">0</p>
-        </div>
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-sm font-medium text-gray-500">Patient ID</h3>
-            <p class="text-xl font-mono font-bold text-gray-800 mt-2" th:text="${patient.patientId}">PAT-0001</p>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold mb-4">My Appointments</h2>
-        <div id="calendar"></div>
-    </div>
-</div>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Dashboard · Meridian Care</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lora:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      new FullCalendar.Calendar(document.getElementById('calendar'), {
-        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
-        events: '/appointment/events',
-        height: 'auto'
-      }).render();
-    });
+  tailwind.config = {
+    theme: { extend: {
+      colors: { ink:'#14232B', teal:'#0B5D52', tealdark:'#083F38', tealtint:'#E7F2F0', clay:'#C2694B', claytint:'#F5E7E1', paper:'#FAF9F6', slate:'#5B6B6E', line:'#E4E1DA' },
+      fontFamily: { serif:['Lora','serif'], sans:['Inter','sans-serif'] }
+    } }
+  }
 </script>
+<style>
+  body{font-family:'Inter',sans-serif;}
+  h1,h2,h3,.font-serif{font-family:'Lora',serif;}
+</style>
+</head>
+<body class="bg-paper text-ink min-h-screen">
+
+<header class="flex items-center justify-between px-6 py-4 border-b border-line bg-white sticky top-0 z-20">
+  <div class="flex items-center gap-2">
+    <div class="w-9 h-9 rounded-md bg-teal flex items-center justify-center">
+      <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white"><path d="M12 3v6M9 6h6M7 9h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 14.5h3M12 13v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+    <span class="font-serif text-lg text-ink">Meridian Care</span>
+  </div>
+  <nav class="hidden sm:flex items-center gap-6 text-sm text-slate">
+    <a th:href="@{/patient/dashboard}" class="text-teal font-medium">Dashboard</a>
+    <a th:href="@{/appointment/book}" class="hover:text-ink">Book Appointment</a>
+    <a th:href="@{/appointment/calendar}" class="hover:text-ink">Calendar</a>
+  </nav>
+  <div class="flex items-center gap-3">
+
+    <div class="w-9 h-9 rounded-full bg-tealtint text-teal flex items-center justify-center font-semibold text-sm"
+         th:text="${#strings.substring(patient.name,0,1)}">
+      R
+    </div>
+
+    <form th:action="@{/logout}" method="post" class="hidden sm:block">
+      <button type="submit"
+              class="text-sm text-slate hover:text-ink">
+        Sign out
+      </button>
+    </form>
+
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-8 space-y-6">
+
+  <div class="bg-ink rounded-lg p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <p class="text-white/60 text-sm">Welcome back</p>
+      <h1 class="font-serif text-2xl sm:text-3xl text-white mt-1" th:text="${patient.name}">Riya Sharma</h1>
+    </div>
+    <a th:href="@{/appointment/book}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-teal text-white text-sm font-medium hover:bg-tealdark transition-colors w-fit">
+      <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Book new appointment
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Upcoming appointments -->
+    <div class="lg:col-span-2 bg-white rounded-lg border border-line overflow-hidden">
+
+      <div class="flex items-center justify-between px-5 py-4 border-b border-line">
+        <h2 class="font-serif text-lg text-ink">Upcoming Appointments</h2>
+
+        <a th:href="@{/appointment/calendar}"
+           class="text-sm text-teal font-medium hover:underline">
+          View calendar
+        </a>
+      </div>
+
+      <ul class="divide-y divide-line">
+
+        <li th:each="appt : ${upcomingAppointments}"
+            class="flex items-center gap-4 px-5 py-4">
+
+          <div class="w-12 h-12 rounded-md bg-tealtint text-teal flex flex-col items-center justify-center shrink-0">
+
+                <span class="text-[10px] font-medium leading-none"
+                      th:text="${#temporals.format(appt.startTime,'MMM').toUpperCase()}">
+                    SEP
+                </span>
+
+            <span class="text-base font-semibold leading-none mt-0.5"
+                  th:text="${#temporals.format(appt.startTime,'dd')}">
+                    12
+                </span>
+
+          </div>
+
+          <div class="flex-1 min-w-0">
+
+            <p class="text-sm font-medium text-ink truncate"
+               th:text="${appt.doctor.name}">
+              Dr. Mehta
+            </p>
+
+            <p class="text-xs text-slate truncate"
+               th:text="${#temporals.format(appt.startTime,'dd MMM yyyy hh:mm a')}">
+              18 Sep 2026 10:30 AM
+            </p>
+
+          </div>
+
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-tealtint text-tealdark shrink-0"
+                th:text="${appt.status}">
+                SCHEDULED
+            </span>
+
+        </li>
+
+        <li th:if="${upcomingAppointments == null or #lists.isEmpty(upcomingAppointments)}"
+            class="px-5 py-10 text-center text-slate">
+
+          You have no upcoming appointments.
+
+          <a th:href="@{/appointment/book}"
+             class="text-teal font-medium hover:underline">
+            Book one now
+          </a>.
+
+        </li>
+
+      </ul>
+
+    </div>
+    <!-- Profile / quick info -->
+    <div class="space-y-4">
+      <div class="bg-white rounded-lg border border-line p-5">
+        <h2 class="font-serif text-lg text-ink mb-3">My Details</h2>
+        <dl class="space-y-2.5 text-sm">
+          <div class="flex justify-between"><dt class="text-slate">Patient ID</dt><dd class="text-ink font-medium" th:text="${patient.id}">P-1042</dd></div>
+          <div class="flex justify-between"><dt class="text-slate">Email</dt><dd class="text-ink font-medium truncate max-w-[160px]" th:text="${patient.email}">riya@example.com</dd></div>
+          <div class="flex justify-between"><dt class="text-slate">Phone</dt><dd class="text-ink font-medium" th:text="${patient.phone}">98765 43210</dd></div>
+        </dl>
+      </div>
+      <div class="bg-white rounded-lg border border-line p-5">
+        <h2 class="font-serif text-lg text-ink mb-3">Recent Visits</h2>
+        <ul class="space-y-3">
+          <li th:each="record : ${medicalHistory}" class="text-sm">
+            <p class="font-medium text-ink" th:text="${record.diagnosis}">Routine checkup</p>
+            <p class="text-xs text-slate" th:text="${record.date} + ' · Dr. ' + ${record.doctorName}">2 Aug 2026 · Dr. Mehta</p>
+          </li>
+          <li th:if="${medicalHistory == null or #lists.isEmpty(medicalHistory)}" class="text-sm text-slate">No visit history yet.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
 </body>
 </html>

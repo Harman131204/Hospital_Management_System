@@ -1,123 +1,109 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Appointments - HMS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Calendar · Meridian Care</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet'/>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        /* nicer event look */
-        .fc-event {
-            border: none !important;
-            padding: 4px 6px !important;
-            border-radius: 8px !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        .fc-event:hover {
-            transform: scale(1.03);
-            transition: 0.2s;
-        }
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-        .fc-daygrid-event-dot {
-            display: none !important; /* remove ugly blue dot */
-        }
-    </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const calendarEl = document.getElementById('calendar');
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+
+            events: {
+                url: '/appointment/events',
+                failure: function () {
+                    alert('Failed to load appointments');
+                }
+            },
+
+            eventColor: '#0B5D52',
+            eventTextColor: '#ffffff',
+
+            nowIndicator: true,
+            navLinks: true,
+            editable: false,
+            dayMaxEvents: true
+        });
+
+        calendar.render();
+    });
+  </script>
+
+  <style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1, h2, h3, .font-serif {
+        font-family: 'Lora', serif;
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen">
 
-<nav class="bg-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between items-center h-16">
-            <h1 class="text-xl font-bold text-indigo-700">My Appointments</h1>
+<header class="bg-white border-b shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-            <div class="flex gap-3 items-center">
-                <a href="/appointment/book"
-                   class="bg-indigo-600 text-white px-4 py-2 rounded-full">
-                    New Appointment
-                </a>
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-md bg-teal-700 flex items-center justify-center text-white">
+        🏥
+      </div>
 
-                <form th:action="@{/logout}" method="post">
-                    <button class="text-red-600">Logout</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<div class="max-w-7xl mx-auto p-6">
-
-    <div class="bg-white rounded-2xl shadow-xl p-4">
-        <div id="calendar"></div>
+      <div>
+        <h2 class="text-xl font-semibold">
+          Meridian Care
+        </h2>
+        <p class="text-xs text-gray-500">
+          Appointment Calendar
+        </p>
+      </div>
     </div>
 
-</div>
+    <a th:href="${dashboardUrl}"
+       class="text-sm font-medium text-gray-600 hover:text-black transition">
+      ← Back to Dashboard
+    </a>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+  </div>
+</header>
 
-    const calendarEl = document.getElementById('calendar');
+<main class="max-w-7xl mx-auto p-6">
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold font-serif">
+      Appointment Calendar
+    </h1>
 
-        initialView: 'dayGridMonth',
+    <p class="text-gray-600 mt-2">
+      View and manage all scheduled appointments.
+    </p>
+  </div>
 
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
+  <div class="bg-white rounded-xl shadow-sm border p-5">
+    <div id="calendar"></div>
+  </div>
 
-        height: 'auto',
-
-        events: function (fetchInfo, successCallback, failureCallback) {
-
-            fetch('/appointment/events')
-                .then(res => res.json())
-                .then(data => {
-
-                    const events = data.map(a => ({
-                        id: a.id,
-                        title: a.title,   // 👈 full text visible
-                        start: a.startTime,
-                        end: a.endTime,
-
-                        // better color logic
-                        backgroundColor: a.status === 'SCHEDULED' ? '#4f46e5' :
-                                         a.status === 'COMPLETED' ? '#16a34a' : '#dc2626',
-
-                        borderColor: 'transparent'
-                    }));
-
-                    successCallback(events);
-                })
-                .catch(err => failureCallback(err));
-        },
-
-        // ✅ clean tooltip (important improvement)
-        eventDidMount: function(info) {
-
-            const status = info.event.extendedProps.status || '';
-
-            info.el.setAttribute(
-                'title',
-                `${info.event.title} \nStatus: ${status}`
-            );
-        }
-
-    });
-
-    calendar.render();
-});
-</script>
+</main>
 
 </body>
 </html>

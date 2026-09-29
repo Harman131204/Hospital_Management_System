@@ -1,18 +1,4 @@
 package com.hms.hospital.controller;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hms.hospital.entity.Appointment;
 import com.hms.hospital.entity.Patient;
@@ -21,8 +7,17 @@ import com.hms.hospital.entity.User;
 import com.hms.hospital.repository.AppointmentRepository;
 import com.hms.hospital.repository.UserRepository;
 import com.hms.hospital.service.PatientService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -35,16 +30,39 @@ public class AppointmentController {
 
     @GetMapping("/calendar")
     public String calendar(Model model, Principal principal) {
-        model.addAttribute("userEmail", principal.getName());
+
+        User user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        model.addAttribute("userEmail", user.getEmail());
+        model.addAttribute("role", user.getRole());
+
+        String dashboardUrl;
+
+        if (user.getRole() == Role.DOCTOR) {
+            dashboardUrl = "/doctor/dashboard";
+        } else if (user.getRole() == Role.ADMIN) {
+            dashboardUrl = "/admin/dashboard";
+        } else {
+            dashboardUrl = "/patient/dashboard";
+        }
+
+        model.addAttribute("dashboardUrl", dashboardUrl);
+
         return "appointment/calendar";
     }
 
     @GetMapping("/book")
     public String bookForm(Model model) {
-        model.addAttribute("doctors", userRepo.findAll().stream()
-                .filter(u -> u.getRole() == Role.DOCTOR)
-                .toList());
+
+        List<User> doctors = userRepo.findAll()
+                .stream()
+                .filter(user -> user.getRole() == Role.DOCTOR)
+                .toList();
+
+        model.addAttribute("doctors", doctors);
         model.addAttribute("appointment", new Appointment());
+
         return "appointment/book";
     }
 
@@ -56,66 +74,111 @@ public class AppointmentController {
                        Principal principal,
                        RedirectAttributes ra) {
 
-        Patient patient = patientService.findPatientByEmail(principal.getName())
+        Patient patient = patientService
+                .findPatientByEmail(principal.getName())
                 .orElse(null);
 
         if (patient == null) {
-            ra.addFlashAttribute("error", "Only registered patients can book appointments.");
+            ra.addFlashAttribute(
+                    "error",
+                    "Only registered patients can book appointments."
+            );
             return "redirect:/appointment/book";
         }
 
         User doctor = userRepo.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Doctor not found"));
 
         LocalDateTime start = LocalDateTime.parse(date + "T" + time);
 
-        appointment.setStartTime(start);           // ← NOW WORKS!
-        appointment.setEndTime(start.plusMinutes(30)); // ← NOW WORKS!
-        appointment.setTitle("Checkup - " + patient.getName());
+        appointment.setStartTime(start);
+        appointment.setEndTime(start.plusMinutes(30));
+        appointment.setTitle("Appointment - " + patient.getName());
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
         appointment.setStatus("SCHEDULED");
 
         appointmentRepo.save(appointment);
 
-        ra.addFlashAttribute("success", "Appointment booked successfully!");
-        return "redirect:/appointment/calendar?reload=true";
+        ra.addFlashAttribute(
+                "success",
+                "Appointment booked successfully!"
+        );
+
+        return "redirect:/appointment/calendar";
     }
 
     @GetMapping("/doctor/events")
     @ResponseBody
-    public List<Appointment> doctorEvents(Principal principal) {
-        User doctor = userRepo.findByEmail(principal.getName()).orElseThrow();
-        return appointmentRepo.findByDoctorIdOrderByStartTimeAsc(doctor.getId());
+    public List<Map<String, Object>> doctorEvents(Principal principal) {
+
+        User doctor = userRepo
+                .findByEmail(principal.getName())
+                .orElseThrow(() ->
+                        new RuntimeException("Doctor not found"));
+
+        return appointmentRepo
+                .findByDoctorIdOrderByStartTimeAsc(doctor.getId())
+                .stream()
+                .map(a -> {
+                    Map<String, Object> event = new HashMap<>();
+
+                    event.put("title",
+                            a.getPatient() != null
+                                    ? a.getPatient().getName()
+                                    : "Patient");
+
+                    event.put("start", a.getStartTime());
+                    event.put("end", a.getEndTime());
+                    event.put("status", a.getStatus());
+
+                    return event;
+                })
+                .toList();
     }
 
     @GetMapping("/events")
     @ResponseBody
-    public List<?> getEvents(Principal principal) {
+    public List<Map<String, Object>> getEvents(Principal principal) {
 
-        User user = userRepo.findByEmail(principal.getName())
-                .orElseThrow();
+        User user = userRepo
+                .findByEmail(principal.getName())
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
 
-        Long userId = user.getId();
+        List<Appointment> appointments;
 
-        List<Appointment> list;
+        if (user.getRole() == Role.PATIENT) {
 
-        if (user.getRole().name().equals("PATIENT")) {
-            list = appointmentRepo.findByPatientUserIdOrderByStartTimeAsc(userId);
-        } 
-        else if (user.getRole().name().equals("DOCTOR")) {
-            list = appointmentRepo.findByDoctorIdOrderByStartTimeAsc(userId);
-        } 
-        else {
-            list = appointmentRepo.findAll();
+            appointments = appointmentRepo
+                    .findByPatientUserIdOrderByStartTimeAsc(
+                            user.getId()
+                    );
+
+        } else if (user.getRole() == Role.DOCTOR) {
+
+            appointments = appointmentRepo
+                    .findByDoctorIdOrderByStartTimeAsc(
+                            user.getId()
+                    );
+
+        } else {
+
+            appointments = appointmentRepo.findAll();
         }
 
-        return list.stream().map(a -> Map.of(
-                "title", a.getTitle(),
-                "start", a.getStartTime().toString(),
-                "end", a.getEndTime().toString(),
-                "status", a.getStatus(),
-                "patientName", a.getPatient().getName()
-        )).toList();
+        return appointments.stream()
+                .map(a -> {
+                    Map<String, Object> event = new HashMap<>();
+
+                    event.put("title", a.getTitle());
+                    event.put("start", a.getStartTime());
+                    event.put("end", a.getEndTime());
+                    event.put("status", a.getStatus());
+
+                    return event;
+                })
+                .toList();
     }
 }

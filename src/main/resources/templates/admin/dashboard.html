@@ -1,128 +1,195 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - HMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · Meridian Care</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lora:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#14232B', teal: '#0B5D52', tealdark: '#083F38', tealtint: '#E7F2F0',
+          clay: '#C2694B', claytint: '#F5E7E1', paper: '#FAF9F6', slate: '#5B6B6E', line: '#E4E1DA'
+        },
+        fontFamily: { serif: ['Lora','serif'], sans: ['Inter','sans-serif'] }
+      }
+    }
+  }
+</script>
+<style>
+  body{font-family:'Inter',sans-serif;}
+  h1,h2,h3,.font-serif{font-family:'Lora',serif;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#C9C4B8;border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-paper text-ink">
 
-<!-- Navbar -->
-<nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-            <div class="flex items-center">
-                <h1 class="text-2xl font-bold text-indigo-700">HMS Admin Panel</h1>
-            </div>
-            <div class="flex items-center gap-6">
-                <a href="/admin/users" class="text-gray-700 hover:text-indigo-600 font-medium">Users</a>
-                <a href="/admin/appointments" class="text-gray-700 hover:text-indigo-600 font-medium">Appointments</a>
-                <form th:action="@{/logout}" method="post" class="inline">
-                    <button class="text-red-600 hover:text-red-800 font-medium flex items-center gap-2">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
+<div class="flex min-h-screen">
 
-<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+  <div id="overlay" class="fixed inset-0 bg-black/30 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl p-6 transform hover:scale-105 transition">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-blue-100 text-sm">Total Users</p>
-                    <p class="text-3xl font-bold mt-2" th:text="${totalUsers}">124</p>
-                </div>
-                <i class="fas fa-users text-4xl opacity-50"></i>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl p-6 transform hover:scale-105 transition">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-green-100 text-sm">Patients</p>
-                    <p class="text-3xl font-bold mt-2" th:text="${totalPatients}">98</p>
-                </div>
-                <i class="fas fa-user-injured text-4xl opacity-50"></i>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl shadow-xl p-6 transform hover:scale-105 transition">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-purple-100 text-sm">Doctors</p>
-                    <p class="text-3xl font-bold mt-2" th:text="${totalDoctors}">12</p>
-                </div>
-                <i class="fas fa-stethoscope text-4xl opacity-50"></i>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-2xl shadow-xl p-6 transform hover:scale-105 transition">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-orange-100 text-sm">Appointments</p>
-                    <p class="text-3xl font-bold mt-2" th:text="${totalAppointments}">256</p>
-                </div>
-                <i class="fas fa-calendar-check text-4xl opacity-50"></i>
-            </div>
-        </div>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transition-transform duration-200 lg:translate-x-0 lg:static bg-ink text-white/90 flex flex-col py-6 px-4">
+    <div class="flex items-center gap-2 px-2 mb-8">
+      <div class="w-9 h-9 rounded-md bg-teal flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white"><path d="M12 3v6M9 6h6M7 9h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 14.5h3M12 13v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <p class="font-serif text-lg leading-none text-white">Meridian Care</p>
+        <p class="text-[11px] text-white/50 tracking-wide mt-1">Admin Console</p>
+      </div>
     </div>
 
-    <!-- Recent Appointments -->
-    <div class="bg-white rounded-2xl shadow-xl p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <i class="fas fa-clock text-indigo-600"></i> Recent Appointments
-        </h2>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-3 text-sm font-semibold text-gray-700">Patient</th>
-                    <th class="px-4 py-3 text-sm font-semibold text-gray-700">Doctor</th>
-                    <th class="px-4 py-3 text-sm font-semibold text-gray-700">Date & Time</th>
-                    <th class="px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                <tr th:each="apt : ${recentAppointments}" class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-4 text-sm" th:text="${apt.patient.name}">John Doe</td>
-                    <td class="px-4 py-4 text-sm" th:text="${apt.doctor.name}">Dr. Sarah</td>
-                    <td class="px-4 py-4 text-sm" th:text="${#temporals.format(apt.startTime, 'dd MMM yyyy, hh:mm a')}">15 Apr 2025, 10:30 AM</td>
-                    <td class="px-4 py-4">
-                <span class="px-3 py-1 rounded-full text-xs font-medium"
-                      th:class="${apt.status == 'SCHEDULED'} ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
-                      th:text="${apt.status}">SCHEDULED</span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <nav class="flex-1 space-y-1">
+      <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium bg-teal/20 text-white border-l-2 border-teal">
+        <svg viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+        Dashboard
+      </a>
+      <a th:href="@{/admin/appointments}" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+        <svg viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Appointments
+      </a>
+      <a th:href="@{/admin/users}" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+        <svg viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 8.5a2.5 2.5 0 1 0 0-5M18 14.2c1.8.5 3 1.9 3 3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Users
+      </a>
+    </nav>
 
-    <!-- Quick Actions -->
-    <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <a href="/admin/users" class="bg-indigo-600 text-white rounded-xl shadow-lg p-6 text-center hover:bg-indigo-700 transition">
-            <i class="fas fa-users text-3xl mb-3"></i>
-            <h3 class="text-lg font-bold">Manage Users</h3>
-            <p class="text-sm opacity-90">Add, edit or remove users</p>
-        </a>
-        <a href="/admin/appointments" class="bg-teal-600 text-white rounded-xl shadow-lg p-6 text-center hover:bg-teal-700 transition">
-            <i class="fas fa-calendar-alt text-3xl mb-3"></i>
-            <h3 class="text-lg font-bold">All Appointments</h3>
-            <p class="text-sm opacity-90">View & manage bookings</p>
-        </a>
-        <div class="bg-gray-800 text-white rounded-xl shadow-lg p-6 text-center">
-            <i class="fas fa-chart-bar text-3xl mb-3"></i>
-            <h3 class="text-lg font-bold">Analytics</h3>
-            <p class="text-sm opacity-90">Coming soon</p>
-        </div>
+    <div class="pt-4 border-t border-white/10">
+      <form th:action="@{/logout}" method="post">
+        <button type="submit"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5">
+            <path d="M15 17l5-5-5-5M20 12H9M13 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+          </svg>
+          Sign out
+        </button>
+      </form>
     </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="flex items-center justify-between gap-4 px-6 py-4 border-b border-line bg-white/70 backdrop-blur sticky top-0 z-20">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 -ml-2 text-ink">
+          <svg viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <div>
+          <h1 class="text-2xl text-ink">Good morning<span th:text="${adminName != null ? ', ' + adminName : ''}"></span></h1>
+          <p class="text-sm text-slate">Here's what's happening across the hospital today.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="relative p-2 rounded-full hover:bg-tealtint text-slate">
+          <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 3a5 5 0 0 0-5 5v3.2c0 .6-.2 1.2-.6 1.6L5 14.5c-.6.7-.1 1.8.8 1.8h12.4c.9 0 1.4-1.1.8-1.8l-1.4-1.7c-.4-.4-.6-1-.6-1.6V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-clay"></span>
+        </button>
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-tealtint text-teal flex items-center justify-center font-semibold text-sm">A</div>
+          <div class="hidden sm:block leading-tight">
+            <p class="text-sm font-medium text-ink" th:text="${adminName ?: 'Admin'}">Admin</p>
+            <p class="text-xs text-slate">Administrator</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="p-6 space-y-6">
+
+      <!-- Stat cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg border border-line p-5 border-l-[3px] border-l-teal">
+          <p class="text-sm text-slate">Total Patients</p>
+          <p class="font-serif text-3xl mt-1 text-ink" th:text="${totalPatients ?: 0}">248</p>
+        </div>
+        <div class="bg-white rounded-lg border border-line p-5 border-l-[3px] border-l-teal">
+          <p class="text-sm text-slate">Total Doctors</p>
+          <p class="font-serif text-3xl mt-1 text-ink" th:text="${totalDoctors ?: 0}">32</p>
+        </div>
+        <div class="bg-white rounded-lg border border-line p-5 border-l-[3px] border-l-clay">
+          <p class="text-sm text-slate">Today's Appointments</p>
+          <p class="font-serif text-3xl mt-1 text-ink" th:text="${todayAppointmentCount ?: 0}">17</p>
+        </div>
+        <div class="bg-white rounded-lg border border-line p-5 border-l-[3px] border-l-clay">
+          <p class="text-sm text-slate">Pending Requests</p>
+          <p class="font-serif text-3xl mt-1 text-ink" th:text="${pendingRequests ?: 0}">5</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Today's appointments table -->
+        <div class="xl:col-span-2 bg-white rounded-lg border border-line overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-line">
+            <h2 class="font-serif text-lg text-ink">Today's Appointments</h2>
+            <a th:href="@{/admin/appointments}" class="text-sm text-teal font-medium hover:underline">View all</a>
+          </div>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-slate border-b border-line">
+                <th class="px-5 py-3 font-medium">Patient</th>
+                <th class="px-5 py-3 font-medium">Doctor</th>
+                <th class="px-5 py-3 font-medium">Time</th>
+                <th class="px-5 py-3 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="appt : ${todayAppointments}" class="border-b border-line last:border-0 hover:bg-paper/60">
+                <td class="px-5 py-3.5" th:text="${appt.patientName}">Riya Sharma</td>
+                <td class="px-5 py-3.5" th:text="${appt.doctorName}">Dr. Mehta</td>
+                <td class="px-5 py-3.5" th:text="${appt.time}">10:30 AM</td>
+                <td class="px-5 py-3.5">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+                        th:classappend="${appt.status == 'CONFIRMED'} ? 'bg-tealtint text-tealdark' : (${appt.status == 'PENDING'} ? 'bg-claytint text-clay' : 'bg-line text-slate')"
+                        th:text="${appt.status}">Confirmed</span>
+                </td>
+              </tr>
+              <tr th:if="${todayAppointments == null or #lists.isEmpty(todayAppointments)}">
+                <td colspan="4" class="px-5 py-8 text-center text-slate">No appointments scheduled for today.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Recent patients -->
+        <div class="bg-white rounded-lg border border-line overflow-hidden">
+          <div class="px-5 py-4 border-b border-line">
+            <h2 class="font-serif text-lg text-ink">Recently Registered</h2>
+          </div>
+          <ul class="divide-y divide-line">
+            <li th:each="p : ${recentPatients}" class="flex items-center gap-3 px-5 py-3.5">
+              <div class="w-9 h-9 rounded-full bg-tealtint text-teal flex items-center justify-center text-sm font-semibold shrink-0"
+                   th:text="${#strings.substring(p.name,0,1)}">R</div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-ink truncate" th:text="${p.name}">Riya Sharma</p>
+                <p class="text-xs text-slate" th:text="${p.registeredOn}">Joined 2 days ago</p>
+              </div>
+            </li>
+            <li th:if="${recentPatients == null or #lists.isEmpty(recentPatients)}" class="px-5 py-8 text-center text-slate text-sm">
+              No new patients yet.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
+
+<script>
+  function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+    document.getElementById('overlay').classList.toggle('hidden');
+  }
+</script>
 </body>
 </html>

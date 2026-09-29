@@ -1,46 +1,242 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen">
-<nav class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-teal-700">Doctor Portal</h1>
-            <p class="text-sm text-gray-600" th:text="'Dr. ' + ${doctor.name}">Dr. Sarah</p>
-        </div>
-        <form th:action="@{/logout}" method="post" class="inline">
-            <button class="text-red-600 hover:text-red-800 text-sm font-medium">Logout</button>
-        </form>
-    </div>
-</nav>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard · Meridian Care</title>
 
-<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-lg font-semibold mb-4">Today's Patients</h3>
-            <div th:each="apt : ${todayAppointments}" class="mb-4 p-4 bg-blue-50 rounded-lg">
-                <p class="font-medium" th:text="${apt.patient.name}">John</p>
-                <p class="text-sm text-gray-600" th:text="${#temporals.format(apt.startTime, 'hh:mm a')}">10:30 AM</p>
-            </div>
-        </div>
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-lg font-semibold mb-4">My Schedule</h3>
-            <div id="calendar"></div>
-        </div>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink:'#14232B',
+            teal:'#0B5D52',
+            tealdark:'#083F38',
+            tealtint:'#E7F2F0',
+            clay:'#C2694B',
+            paper:'#FAF9F6',
+            slate:'#5B6B6E',
+            line:'#E4E1DA'
+          },
+          fontFamily:{
+            serif:['Lora','serif'],
+            sans:['Inter','sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body{
+      font-family:'Inter',sans-serif;
+    }
+    h1,h2,h3,.font-serif{
+      font-family:'Lora',serif;
+    }
+  </style>
+</head>
+
+<body class="bg-paper text-ink">
+
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-ink text-white flex flex-col p-5">
+
+    <div class="mb-8">
+      <h2 class="font-serif text-xl">Meridian Care</h2>
+      <p class="text-xs text-white/60">Doctor Portal</p>
     </div>
+
+    <nav class="space-y-2 flex-1">
+
+      <a th:href="@{/doctor/dashboard}"
+         class="block px-4 py-2 rounded bg-teal text-white">
+        Dashboard
+      </a>
+
+      <a th:href="@{/appointment/calendar}"
+         class="block px-4 py-2 rounded hover:bg-white/10">
+        Calendar
+      </a>
+
+    </nav>
+    <div class="pt-4 border-t border-white/10">
+      <form th:action="@{/logout}" method="post">
+        <button type="submit"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5">
+            <path d="M15 17l5-5-5-5M20 12H9M13 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+          </svg>
+          Sign out
+        </button>
+      </form>
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-line px-6 py-4 flex justify-between items-center">
+
+      <div>
+        <h1 class="text-2xl font-serif">
+          Welcome back,
+          <span th:text="${doctor.name}">
+                        Dr. Vikram Singh
+                    </span>
+        </h1>
+
+        <p class="text-slate text-sm">
+          Doctor Dashboard
+        </p>
+      </div>
+
+      <div class="w-10 h-10 rounded-full bg-tealtint text-teal flex items-center justify-center font-bold"
+           th:text="${#strings.substring(doctor.name,0,1)}">
+        D
+      </div>
+
+    </header>
+
+    <main class="p-6 space-y-6">
+
+      <!-- Stats -->
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div class="bg-white rounded-lg border border-line p-5">
+          <p class="text-slate text-sm">
+            Today's Appointments
+          </p>
+
+          <h2 class="text-3xl font-serif mt-2"
+              th:text="${totalToday}">
+            0
+          </h2>
+        </div>
+
+        <div class="bg-white rounded-lg border border-line p-5">
+          <p class="text-slate text-sm">
+            Upcoming Appointments
+          </p>
+
+          <h2 class="text-3xl font-serif mt-2"
+              th:text="${#lists.size(upcoming)}">
+            0
+          </h2>
+        </div>
+
+      </div>
+
+      <!-- Today's Schedule -->
+      <div class="bg-white rounded-lg border border-line overflow-hidden">
+
+        <div class="px-5 py-4 border-b border-line flex justify-between">
+
+          <h2 class="font-serif text-lg">
+            Today's Schedule
+          </h2>
+
+          <a th:href="@{/appointment/calendar}"
+             class="text-teal text-sm">
+            Open Calendar
+          </a>
+
+        </div>
+
+        <ul class="divide-y divide-line">
+
+          <li th:each="appt : ${todayAppointments}"
+              class="flex items-center justify-between px-5 py-4">
+
+            <div>
+
+              <p class="font-medium"
+                 th:text="${appt.patient.name}">
+                Patient Name
+              </p>
+
+              <p class="text-sm text-slate"
+                 th:text="${#temporals.format(appt.startTime,'dd MMM yyyy hh:mm a')}">
+                18 Sep 2026 10:30 AM
+              </p>
+
+            </div>
+
+            <span class="px-3 py-1 rounded-full text-xs bg-tealtint text-tealdark"
+                  th:text="${appt.status}">
+                            SCHEDULED
+                        </span>
+
+          </li>
+
+          <li th:if="${todayAppointments == null or #lists.isEmpty(todayAppointments)}"
+              class="text-center py-8 text-slate">
+
+            No appointments scheduled today.
+
+          </li>
+
+        </ul>
+
+      </div>
+
+      <!-- Upcoming Appointments -->
+      <div class="bg-white rounded-lg border border-line overflow-hidden">
+
+        <div class="px-5 py-4 border-b border-line">
+          <h2 class="font-serif text-lg">
+            Upcoming Appointments
+          </h2>
+        </div>
+
+        <ul class="divide-y divide-line">
+
+          <li th:each="appt : ${upcoming}"
+              class="flex items-center justify-between px-5 py-4">
+
+            <div>
+
+              <p class="font-medium"
+                 th:text="${appt.patient.name}">
+                Patient Name
+              </p>
+
+              <p class="text-sm text-slate"
+                 th:text="${#temporals.format(appt.startTime,'dd MMM yyyy hh:mm a')}">
+              </p>
+
+            </div>
+
+            <span class="px-3 py-1 rounded-full text-xs bg-tealtint text-tealdark"
+                  th:text="${appt.status}">
+                            SCHEDULED
+                        </span>
+
+          </li>
+
+        </ul>
+
+      </div>
+
+    </main>
+
+  </div>
+
 </div>
 
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-<script>
-    new FullCalendar.Calendar(document.getElementById('calendar'), {
-      initialView: 'timeGridWeek',
-      events: '/appointment/doctor/events',
-      height: 'auto'
-    }).render();
-</script>
 </body>
 </html>
